@@ -17,8 +17,7 @@ const REQ_BODY_PARAMS = {
 }
 
 const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:3001'
+  process.env.ALLOWED_URLS
 ]
 
 const corsOptions = {
