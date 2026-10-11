@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/index.js"
+    "start": "nodemon --platform=linux src/index.js"
   },
   "keywords": [],
   "type": "commonjs",
@@ -15,9 +15,6 @@
     "express": "^5.2.1",
     "sqlite3": "^6.0.1",
     "xlsx": "^0.18.5"
-  },
-  "allowScripts": {
-    "sqlite3@6.0.1": true
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
