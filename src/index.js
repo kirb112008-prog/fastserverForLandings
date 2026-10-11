@@ -7,6 +7,7 @@ require('dotenv').config()
 
 const DBService = require('./databaseService')
 const DBManager = new DBService();
+DBManager.init();
 
 const REQ_BODY_PARAMS = {
   name: '',
@@ -15,9 +16,19 @@ const REQ_BODY_PARAMS = {
   niche: ''
 }
 
-let corsOptions = {
-  origin: process.env.URL + process.env.PORT,
-  optionsSuccessStatus: 200
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001'
+]
+
+const corsOptions = {
+  origin: function(origin, callback) {
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'), false);
+    }
+  }
 };
 
 app.use(cors(corsOptions))
@@ -26,6 +37,7 @@ app.use(express.json())
 
 app.post('/postUserData', async (req, res) => {
   const userData = req.body
+  console.log(userData)
 
   if (!userData) {
      res.status(403).send('Uncorrect JSON body')
