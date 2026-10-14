@@ -5,9 +5,12 @@ const app = express()
 
 require('dotenv').config()
 
-const DBService = require('./databaseService')
+const DBService = require('./dbService')
 const DBManager = new DBService();
 DBManager.init();
+
+const MailService = require('./mailService')
+const MailManager = new MailService()
 
 const REQ_BODY_PARAMS = {
   name: '',
@@ -30,30 +33,42 @@ const corsOptions = {
   }
 };
 
-app.use(cors(corsOptions))
+app.use(cors())
 app.use(express.json())
 
 
 app.post('/postUserData', async (req, res) => {
-  const userData = req.body
-  console.log(userData)
+  if (req.headers['authorization'] == "Bearer " + process.env.ACCESS_TOKEN) {
+    const userData = req.body
+    console.log(userData)
 
-  if (!userData) {
-     res.status(403).send('Uncorrect JSON body')
-  }
-
-  else if (Object.keys(userData).length != Object.keys(REQ_BODY_PARAMS).length) {
-    res.status(403).json()
-  } else {
-    for (let i = 0; i < Object.keys(REQ_BODY_PARAMS).length; i++) {
-      if (Object.keys(REQ_BODY_PARAMS)[i] != Object.keys(userData)[i]) {
-        res.status(403).json()
-      }
+    if (!userData) {
+      res.status(403).send('Uncorrect JSON body')
     }
 
-    DBManager.addUser(userData)
+    else if (Object.keys(userData).length != Object.keys(REQ_BODY_PARAMS).length) {
+      res.status(403).json('Uncorrect JSON body')
+    } else {
+      for (let i = 0; i < Object.keys(REQ_BODY_PARAMS).length; i++) {
+        if (Object.keys(REQ_BODY_PARAMS)[i] != Object.keys(userData)[i]) {
+          res.status(403).json('Uncorrect JSON body')
+        }
+      }
 
-    res.status(200).send('Succes')
+      try {
+        await DBManager.addUser(userData)
+      } catch (err) {
+        console.error(err)
+        return res.status(500).json('Error of editing database')
+      }
+
+      MailManager.sendWelcomeMail(userData.email)
+        .catch(err => console.error('Mail sending failed:', err.message))
+
+      res.status(200).send('Succes')
+    }
+  } else {
+    res.status(401).json("Unauthorised")
   }
 })
 
