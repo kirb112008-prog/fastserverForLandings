@@ -19,9 +19,8 @@ const REQ_BODY_PARAMS = {
   niche: ''
 }
 
-const allowedOrigins = [
-  process.env.ALLOWED_URLS
-]
+const allowedOrigins = process.env.ALLOWED_URLS.split(' ')
+
 
 const corsOptions = {
   origin: function(origin, callback) {
@@ -33,7 +32,7 @@ const corsOptions = {
   }
 };
 
-app.use(cors())
+app.use(cors(corsOptions))
 app.use(express.json())
 
 
