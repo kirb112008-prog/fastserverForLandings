@@ -1,7 +1,8 @@
 
 const { createClient } = require('@libsql/client')
 const XLSX = require('xlsx')
-const XLSX_PATH = process.env.XLSX_PATH || './src/converted/users.xlsx'
+const path = require('path')
+const XLSX_PATH = path.resolve(process.env.XLSX_PATH || path.join(__dirname, 'converted', 'users.xlsx'))
 
 const DBParams = ["id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
                     "name VARCHAR(255) NOT NULL",
@@ -12,6 +13,7 @@ const DBParams = ["id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
 
 class TursoService {
     constructor() {
+        this.xlsxPath = XLSX_PATH
         this.db = createClient({
             url: process.env.TURSO_DATABASE_URL,
             authToken: process.env.TURSO_AUTH_TOKEN

@@ -1,7 +1,6 @@
 const nodemailer = require('nodemailer')
 const dns = require('dns').promises
 
-const SMTP_HOST = 'smtp.gmail.com'
 const DEMO_URL = 'https://159-194-249-131.sslip.io/c/litera/'
 const MAIL_SUBJECT = 'Демо-платформа от САММ-И'
 const MAIL_TEXT = 'Спасибо за регистрацию! Даем вам доступ к открытому Демо: ' + DEMO_URL
@@ -41,17 +40,25 @@ const MAIL_HTML = `<!DOCTYPE html>
 class MailService {
     transporter = null
 
+    // SMTP задаётся в .env (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM);
+    // без них работает прежняя настройка через Gmail
+    get smtpUser() {
+        return process.env.SMTP_USER || process.env.GMAIL_USER
+    }
+
     async getTransporter() {
         if (!this.transporter) {
-            const { address } = await dns.lookup(SMTP_HOST, { family: 4 })
+            const host = process.env.SMTP_HOST || 'smtp.gmail.com'
+            const port = Number(process.env.SMTP_PORT) || 465
+            const { address } = await dns.lookup(host, { family: 4 })
             this.transporter = nodemailer.createTransport({
                 host: address,
-                port: 465,
-                secure: true,
-                tls: { servername: SMTP_HOST },
+                port,
+                secure: port === 465,
+                tls: { servername: host },
                 auth: {
-                    user: process.env.GMAIL_USER,
-                    pass: process.env.GMAIL_APP_PASSWORD,
+                    user: this.smtpUser,
+                    pass: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD,
                 },
             })
         }
@@ -61,7 +68,7 @@ class MailService {
     async sendMail(to, subject, text, html) {
         const transporter = await this.getTransporter()
         await transporter.sendMail({
-            from: process.env.GMAIL_USER,
+            from: process.env.SMTP_FROM || this.smtpUser,
             to,
             subject,
             text,
